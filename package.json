@@ -1,0 +1,13 @@
+{
+  "name": "spark",
+  "version": "0.1.0",
+  "description": "Tiny dependency-free reactive UI library",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": "./src/index.js",
+  "files": ["src"],
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "license": "MIT"
+}

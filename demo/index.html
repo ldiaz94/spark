@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>spark · todo</title>
+<style>
+  body { font: 16px/1.4 system-ui, sans-serif; background: #f4f1ec; color: #222; margin: 0; padding: 2rem 1rem; }
+  main { max-width: 28rem; margin: 0 auto; background: #fff; border-radius: 12px; padding: 1.25rem; box-shadow: 0 4px 24px #0002; }
+  h1 { margin: 0 0 1rem; font-size: 1.6rem; }
+  form { display: flex; gap: .5rem; }
+  input[type=text] { flex: 1; padding: .5rem; font: inherit; border: 1px solid #bbb; border-radius: 6px; }
+  button { font: inherit; padding: .4rem .8rem; border: 0; border-radius: 6px; background: #e8590c; color: #fff; cursor: pointer; }
+  ul { list-style: none; padding: 0; margin: 1rem 0; }
+  li { display: flex; align-items: center; gap: .6rem; padding: .5rem; border-bottom: 1px solid #eee; background: #fff; }
+  li .grip { cursor: grab; color: #aaa; user-select: none; }
+  li .label { flex: 1; }
+  li.done .label { text-decoration: line-through; color: #999; }
+  li.dragging { opacity: .4; }
+  li.over { box-shadow: inset 0 2px 0 #e8590c; }
+  li button.del { background: none; color: #c92a2a; padding: 0 .4rem; font-size: 1.2rem; }
+  footer { display: flex; justify-content: space-between; align-items: center; font-size: .9rem; }
+  .filters button { background: #eee; color: #333; margin-left: .25rem; }
+  .filters button.on { background: #222; color: #fff; }
+  .empty { color: #999; text-align: center; padding: 1rem; }
+</style>
+</head>
+<body>
+<main id="app"></main>
+<script type="module">
+import { signal, computed, effect, batch, html, each, mount } from '../src/index.js';
+
+// ---- state ----
+const saved = JSON.parse(localStorage.getItem('spark-todos') || 'null');
+const [todos, setTodos] = signal(saved || [
+  { id: 1, text: 'Try spark', done: true },
+  { id: 2, text: 'Drag me to reorder', done: false },
+  { id: 3, text: 'Add your own todo', done: false },
+]);
+const [filter, setFilter] = signal('all');
+const [draft, setDraft] = signal('');
+const [dragId, setDragId] = signal(null);
+const [overId, setOverId] = signal(null);
+let nextId = Math.max(0, ...todos().map((t) => t.id)) + 1;
+
+const visible = computed(() => {
+  const f = filter();
+  return todos().filter((t) => f === 'all' || (f === 'done') === t.done);
+});
+const left = computed(() => todos().filter((t) => !t.done).length);
+
+effect(() => localStorage.setItem('spark-todos', JSON.stringify(todos())));
+
+// ---- actions ----
+const add = (e) => {
+  e.preventDefault();
+  const text = draft().trim();
+  if (!text) return;
+  batch(() => { setTodos((l) => [...l, { id: nextId++, text, done: false }]); setDraft(''); });
+};
+const toggle = (id) => setTodos((l) => l.map((t) => (t.id === id ? { ...t, done: !t.done } : t)));
+const remove = (id) => setTodos((l) => l.filter((t) => t.id !== id));
+const clearDone = () => setTodos((l) => l.filter((t) => !t.done));
+function move(from, to) { // put `from` where `to` is, in the full list
+  if (from === to) return;
+  setTodos((l) => {
+    const a = l.slice(), i = a.findIndex((t) => t.id === from), [x] = a.splice(i, 1);
+    a.splice(a.findIndex((t) => t.id === to), 0, x);
+    return a;
+  });
+}
+
+// ---- views ----
+const Row = (todo) => html`
+  <li draggable="true"
+      class=${() => ({ done: todo().done, dragging: dragId() === todo().id, over: overId() === todo().id && dragId() !== todo().id })}
+      @dragstart=${(e) => { setDragId(todo().id); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(todo().id)); }}
+      @dragover=${(e) => { e.preventDefault(); setOverId(todo().id); }}
+      @drop=${(e) => { e.preventDefault(); move(dragId(), todo().id); }}
+      @dragend=${() => batch(() => { setDragId(null); setOverId(null); })}>
+    <span class="grip" title="drag to reorder">⠿</span>
+    <input type="checkbox" .checked=${() => todo().done} @change=${() => toggle(todo().id)}>
+    <span class="label">${() => todo().text}</span>
+    <button class="del" title="delete" @click=${() => remove(todo().id)}>×</button>
+  </li>`;
+
+const FilterBtn = (name) => html`<button class=${() => ({ on: filter() === name })} @click=${() => setFilter(name)}>${name}</button>`;
+
+const App = () => html`
+  <h1>todos</h1>
+  <form @submit=${add}>
+    <input type="text" placeholder="What needs doing?" .value=${draft} @input=${(e) => setDraft(e.target.value)}>
+    <button>Add</button>
+  </form>
+  <ul>${each(visible, (t) => t.id, Row)}</ul>
+  ${() => (visible().length ? '' : html`<div class="empty">Nothing here.</div>`)}
+  <footer>
+    <span><b>${left}</b> ${() => (left() === 1 ? 'item' : 'items')} left</span>
+    <span class="filters">${['all', 'active', 'done'].map(FilterBtn)}</span>
+    <button @click=${clearDone} style=${() => ({ display: todos().some((t) => t.done) ? '' : 'none' })}>Clear done</button>
+  </footer>`;
+
+mount(document.getElementById('app'), App);
+</script>
+</body>
+</html>

@@ -1,13 +1,22 @@
 {
   "name": "spark",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Tiny dependency-free reactive UI library",
   "type": "module",
   "main": "src/index.js",
-  "exports": "./src/index.js",
-  "files": ["src"],
-  "scripts": {
-    "test": "node --test test/*.test.js"
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "default": "./src/index.js"
+    }
   },
-  "license": "ISC"
+  "files": [
+    "src"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "types": "npx -y -p typescript@5.9.3 tsc --noEmit --strict --target es2022 --module nodenext --lib es2022,dom test/types.ts"
+  },
+  "license": "ISC",
+  "types": "src/index.d.ts"
 }

@@ -217,3 +217,14 @@ test('batch over several template bindings updates each once', () => {
   assert.equal(el.textContent, '4');
   assert.equal(runs, 2);
 });
+
+test("an element's holes are bound after its children, so a <select>'s options exist for .value", () => {
+  const seen = [];
+  Object.defineProperty(document.createElement('p').constructor.prototype, 'probe', {
+    configurable: true,
+    set(v) { seen.push(this.childNodes.length); },
+  });
+  const items = ['a', 'b'];
+  html`<p .probe=${1}>${items.map((s) => html`<i>${s}</i>`)}</p>`;
+  assert.ok(seen[0] >= 2, 'children were there when .probe was set: ' + seen[0]);
+});

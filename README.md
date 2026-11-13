@@ -1,11 +1,11 @@
 # spark
 
-Tiny (~400 lines), dependency-free reactive UI library. ESM, no build step.
+Tiny (~400 lines), dependency-free reactive UI library. ESM, no build step, with TypeScript declarations (`src/index.d.ts`).
 
 > **Status: experimental (0.1.0).** spark was written by
 > [arno](https://github.com/ldiaz94/arno), an AI coding agent, in one
-> session, and is checked only by its own tests, which run against a small
-> DOM shim, not real browsers. The API may change, it is not on npm, and
+> session. Its own tests run against a small DOM shim; its first app,
+> [cuento](https://github.com/ldiaz94/cuento), runs it in headless Chromium. The API may change, it is not on npm, and
 > it has had no outside review. Try it, learn from it; think twice before
 > shipping it.
 
@@ -31,7 +31,7 @@ Copy `src/` into your project, or import a tagged version straight from
 GitHub through jsDelivr:
 
 ```js
-import { signal, html, mount } from 'https://cdn.jsdelivr.net/gh/ldiaz94/spark@v0.1.0/src/index.js';
+import { signal, html, mount } from 'https://cdn.jsdelivr.net/gh/ldiaz94/spark@v0.1.1/src/index.js';
 ```
 
 ```js

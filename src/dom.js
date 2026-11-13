@@ -35,6 +35,9 @@ function collect(node, ops) {
       const m = /^spark:(\d+)$/.exec(c.data);
       if (m) ops.push((v) => bindChild(c, v[m[1]]));
     } else if (c.nodeType === 1) {
+      // Children first, so an element's own holes see them: a <select>'s
+      // .value is set once its <option>s exist (before, browsers ignore it).
+      collect(c, ops);
       for (const a of Array.from(c.attributes)) {
         const special = a.name[0] === '@' || a.name[0] === '.';
         if (special || HOLE.test(a.value)) {
@@ -42,7 +45,6 @@ function collect(node, ops) {
           ops.push((v) => bindAttr(c, a.name, a.value.split(HOLE), v));
         }
       }
-      collect(c, ops);
     }
   }
 }

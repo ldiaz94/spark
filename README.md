@@ -2,6 +2,38 @@
 
 Tiny (~400 lines), dependency-free reactive UI library. ESM, no build step.
 
+> **Status: experimental (0.1.0).** spark was written by
+> [arno](https://github.com/ldiaz94/arno), an AI coding agent, in one
+> session, and is checked only by its own tests, which run against a small
+> DOM shim, not real browsers. The API may change, it is not on npm, and
+> it has had no outside review. Try it, learn from it; think twice before
+> shipping it.
+
+## Security
+
+Text holes (`${v}` between tags) become text nodes, so strings there are
+never parsed as HTML. **Nothing else is sanitised.** Never bind untrusted
+strings to:
+
+- URL attributes (`href`, `src`, `action`, `formaction`): a
+  `javascript:` URL runs code;
+- `on*` attributes (`onclick=${s}`): the string becomes a handler. Use
+  `@click=${fn}` with a function instead;
+- HTML properties (`.innerHTML=${s}`, `.outerHTML`): the string is parsed
+  as HTML.
+
+The template text itself (outside the holes) is parsed as HTML once, so it
+must be your own code, never built from user input.
+
+## Use it
+
+Copy `src/` into your project, or import a tagged version straight from
+GitHub through jsDelivr:
+
+```js
+import { signal, html, mount } from 'https://cdn.jsdelivr.net/gh/ldiaz94/spark@v0.1.0/src/index.js';
+```
+
 ```js
 import { signal, computed, effect, batch, html, each, mount } from './src/index.js';
 
@@ -79,3 +111,12 @@ src/index.js  exports
 demo/         todo app
 test/         node --test suites + DOM shim
 ```
+
+## Contributing
+
+Issues are welcome; pull requests are turned off. See
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Licence
+
+ISC: see [LICENSE](LICENSE).
